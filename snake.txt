@@ -1,0 +1,546 @@
+import random
+import time
+from os import path
+from tkinter import *
+
+import pygame
+
+score_border = 0
+record_border = 0
+score_borderless = 0
+record_borderless = 0
+
+
+def info():
+    window = Tk()
+    window["bg"] = "#7b68ee"
+    window.title("Snakegame: Information", )
+    window.geometry('700x380')
+
+    lbl = Label(window, text="Snake game on python", bg="#7b68ee", fg="dark green", font=("Impact", 25))
+    lbl.place(x=190, y=10)
+
+    lbl = Label(window, text="                                    "
+                             "- это обычная змейка. Цель игры собирать 'яблоки' и избегать ", bg="#7b68ee", font="16")
+    lbl.place(x=20, y=100)
+    lbl = Label(window, text="Класический режим", bg="#7b68ee", fg="red3", font="18")
+    lbl.place(x=20, y=100)
+
+    lbl = Label(window, text="столкновение со стенками и своим телом.", bg="#7b68ee", font="16")
+    lbl.place(x=20, y=120)
+    lbl = Label(window, text="                                      "
+                             " - более современная версия змейки, где игрок может проходить", bg="#7b68ee", font="16")
+    lbl.place(x=20, y=180)
+    lbl = Label(window, text="Безрамочный режим", bg="#7b68ee", fg="red3", font="18")
+    lbl.place(x=20, y=180)
+    lbl = Label(window, text="сквозь стены, выходя с противоположной стороны.",
+                bg="#7b68ee", font="16")
+    lbl.place(x=20, y=200)
+
+    btn = Button(background="#818bde", padx=40, pady=10, bd=8,
+                 activebackground="#818bde", font="16", text="Обратно в меню",
+                 command=lambda: [window.destroy(), menu()])
+    btn.place(x=230, y=300)
+    window.mainloop()
+
+
+def menu():
+    run = True
+    while run:
+        window = Tk()
+        window["bg"] = "#7b68ee"
+        window.title("Snakegame: Menu", )
+        window.geometry('700x380')
+
+        lbl = Label(window, text="Snake game on python", bg="#7b68ee", fg="dark green", font=("Impact", 25))
+        lbl.place(x=190, y=10)
+        btn = Button(background="#818bde", padx=20, pady=80, bd=8, activebackground="#818bde", font="16",
+                     text="Класический режим", command=lambda: [window.destroy(), border()])
+        btn.place(x=40, y=80)
+        btn = Button(background="#818bde", padx=20, pady=80, bd=8, activebackground="#818bde", font="16",
+                     text="Безрамочный режим", command=lambda: [window.destroy(), borderless()])
+        btn.place(x=440, y=80)
+        btn = Button(background="#818bde", padx=20, pady=60, bd=8, activebackground="#818bde", font="16", text="Выход",
+                     command=exit)
+        btn.place(x=287, y=190)
+        btn = Button(background="#818bde", padx=20, pady=20, bd=8, activebackground="#818bde", font="16",
+                     text="Информация",
+                     command=lambda: [window.destroy(), info()])
+        btn.place(x=262, y=90)
+        window.mainloop()
+
+
+def lose(borderr):
+    window = Tk()
+    window["bg"] = "#7b68ee"
+    window.title("Snakegame: Menu", )
+    window.geometry('700x380')
+    lbl = Label(window, text="Snake game on python", bg="#7b68ee", fg="dark green", font=("Impact", 25))
+    lbl.place(x=190, y=10)
+    lbl = Label(window, text="Ты проиграл", bg="#7b68ee", fg="red3", font=("Impact", 25))
+    lbl.place(x=250, y=60)
+    lbl = Label(window, text="Ты набрал: ", bg="#7b68ee", font=("Arial", 25))
+    lbl.place(x=180, y=120)
+    if borderr:
+        lbl = Label(window, text=score_border, bg="#7b68ee", fg="yellow", font=("Arial", 25))
+        lbl.place(x=354, y=120)
+    else:
+        lbl = Label(window, text=score_borderless, bg="#7b68ee", font=("Arial", 25))
+        lbl.place(x=354, y=120)
+    lbl = Label(window, text="очков.", bg="#7b68ee", font=("Arial", 25))
+    lbl.place(x=415, y=120)
+
+    lbl = Label(window, text="Твой рекорд: ", bg="#7b68ee", font=("Arial", 25))
+    lbl.place(x=155, y=180)
+    if borderr:
+        lbl = Label(window, text=record_border, bg="#7b68ee", fg="yellow", font=("Arial", 25))
+        lbl.place(x=354, y=180)
+    else:
+        lbl = Label(window, text=record_borderless, bg="#7b68ee", font=("Arial", 25))
+        lbl.place(x=354, y=180)
+    lbl = Label(window, text="очков.", bg="#7b68ee", font=("Arial", 25))
+    lbl.place(x=415, y=180)
+
+    if borderr:
+        btn = Button(background="#818bde", padx=40, pady=10, bd=8, activebackground="#818bde", font="16",
+                     text="Попробывать снова", command=lambda: [window.destroy(), border()])
+    else:
+        btn = Button(background="#818bde", padx=40, pady=10, bd=8, activebackground="#818bde", font="16",
+                     text="Попробывать снова", command=lambda: [window.destroy(), borderless()])
+    btn.place(x=40, y=290)
+    btn = Button(background="#818bde", padx=40, pady=10, bd=8, activebackground="#818bde", font="16",
+                 text="      Выйти в меню      ", command=lambda: [window.destroy(), menu()])
+    btn.place(x=400, y=290)
+    window.mainloop()
+
+
+def border():
+    global score_border, record_border
+    score_border = 0
+    pygame.init()
+    snd_dir = path.join(path.dirname(__file__), 'snd')
+
+    crash = pygame.mixer.Sound(path.join(snd_dir, 'crash.wav'))
+    food = pygame.mixer.Sound(path.join(snd_dir, 'food.wav'))
+    move = pygame.mixer.Sound(path.join(snd_dir, 'move.wav'))
+    death = pygame.mixer.Sound(path.join(snd_dir, 'death.wav'))
+
+    game = True
+
+    while game:
+
+        pygame.init()
+        win = pygame.display.set_mode((1410, 700))
+
+        pygame.display.set_caption("Snake")
+
+        borderr = True
+
+        x_cube = 27
+        y_cube = 67
+        width_cube = 1349
+        height_cube = 598
+
+        x_cube1 = 30
+        y_cube1 = 18
+        width_cube1 = 120
+        height_cube1 = 30
+
+        x_cube2 = 1260
+        y_cube2 = 18
+        width_cube2 = 120
+        height_cube2 = 30
+
+        width = 22
+        height = 22
+
+        Left = 0
+        Right = 0
+        UP = 0
+        DOWN = 0
+
+        x_feed1 = 40
+        y_feed1 = 80
+
+        body = 1
+
+        feedspawned = True
+        x1 = [30]
+        y1 = [70]
+
+        feed = False
+        font = pygame.font.Font(None, 25)
+
+        x_feed = random.randint(0, 44)
+        y_feed = random.randint(0, 19)
+        while (x1[0] >= (x_feed1 + x_feed * 30) >= x1[0] + 30) and (
+                y1[0] >= (y_feed1 + y_feed * 30) >= y1[0] + 30):
+            x_feed = random.randint(0, 44)
+            y_feed = random.randint(0, 19)
+
+        run = True
+        while run:
+            pygame.time.delay(100)  # Цикл будет выполняться каждые 0,1 секунды
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    menu()
+
+            if x1[0] < 30 or x1[0] > 1350 or y1[0] < 70 or y1[0] > 640:
+                crash.play()
+                if score_border > record_border:
+                    record_border = score_border
+                time.sleep(1 / 2)
+                death.play()
+                time.sleep(1)
+                while run:
+                    lose(borderr)
+
+            win.fill((123, 104, 238))
+
+            pygame.draw.rect(win, (0, 0, 0), (x_cube - 4, y_cube - 4, width_cube + 8, height_cube + 8))
+            pygame.draw.rect(win, (129, 139, 222), (x_cube - 2, y_cube - 2, width_cube + 4, height_cube + 4))
+
+            pygame.draw.circle(win, (0, 0, 0), (x_feed1 + x_feed * 30, y_feed1 + y_feed * 30), 9)
+            pygame.draw.circle(win, (0, 255, 0), (x_feed1 + x_feed * 30, y_feed1 + y_feed * 30), 7)
+
+            pygame.draw.rect(win, (0, 0, 0), (x_cube1 - 4, y_cube1 - 4, width_cube1 + 8, height_cube1 + 8))
+            pygame.draw.rect(win, (129, 139, 222), (x_cube1 - 2, y_cube1 - 2, width_cube1 + 4, height_cube1 + 4))
+
+            pygame.draw.rect(win, (0, 0, 0), (x_cube2 - 4, y_cube2 - 4, width_cube2 + 8, height_cube2 + 8))
+            pygame.draw.rect(win, (129, 139, 222), (x_cube2 - 2, y_cube2 - 2, width_cube2 + 4, height_cube2 + 4))
+
+            for i in range(body):
+                pygame.draw.rect(win, (0, 0, 0), (x1[i] - 2, y1[i] - 2, width + 4, height + 4))
+                pygame.draw.rect(win, (254, 4, 0), (x1[i], y1[i], width, height))
+
+            for i in range(body):
+                pygame.draw.rect(win, (0, 0, 0), (x1[i] - 2, y1[i] - 2, width + 4, height + 4))
+                pygame.draw.rect(win, (254, 4, 0), (x1[i], y1[i], width, height))
+
+            text = font.render("Score: " + str(score_border), True, (0, 0, 0))
+            text1 = font.render("Record: " + str(record_border), True, (0, 0, 0))
+            win.blit(text, [40, 25])
+            win.blit(text1, [1270, 25])
+
+            pygame.display.update()
+            keys = pygame.key.get_pressed()
+            if (Left + Right + UP + DOWN) > 0:
+                move.play()
+
+            if Right != 1:
+                if keys[pygame.K_LEFT]:
+                    Left = 1
+                    Right = 0
+                    UP = 0
+                    DOWN = 0
+            if Left != 1:
+                if keys[pygame.K_RIGHT]:
+                    Right = 1
+                    Left = 0
+                    UP = 0
+                    DOWN = 0
+            if DOWN != 1:
+                if keys[pygame.K_UP]:
+                    UP = 1
+                    Left = 0
+                    Right = 0
+                    DOWN = 0
+            if UP != 1:
+                if keys[pygame.K_DOWN]:
+                    DOWN = 1
+                    Left = 0
+                    Right = 0
+                    UP = 0
+
+            if Left == 1 and x1[0] > 29:
+
+                i = 1
+                while (body - i - 1) >= 0:
+                    y1[body - i] = y1[body - i - 1]
+                    x1[body - i] = x1[body - i - 1]
+
+                    i += 1
+                x1[0] -= 30
+
+            if Right == 1 and x1[0] < 1351:
+
+                i = 1
+                while (body - i - 1) >= 0:
+                    y1[body - i] = y1[body - i - 1]
+                    x1[body - i] = x1[body - i - 1]
+                    i += 1
+                x1[0] += 30
+            if UP == 1 and y1[0] > 69:
+
+                i = 1
+                while (body - i - 1) >= 0:
+                    y1[body - i] = y1[body - i - 1]
+                    x1[body - i] = x1[body - i - 1]
+                    i += 1
+
+                y1[0] -= 30
+            if DOWN == 1 and y1[0] < 641:
+
+                i = 1
+                while (body - i - 1) >= 0:
+                    y1[body - i] = y1[body - i - 1]
+                    x1[body - i] = x1[body - i - 1]
+                    i += 1
+
+                y1[0] += 30
+            g = 1
+            while g < body:
+                if x1[0] == x1[g] and y1[0] == y1[g]:
+                    if score_border > record_border:
+                        record_border = score_border
+                    while run:
+                        lose(borderr)
+                g += 1
+
+            if feed:
+                body += 1
+                feed = False
+
+            if (x1[0] < (x_feed1 + x_feed * 30) < x1[0] + 30) and (
+                    y1[0] < (y_feed1 + y_feed * 30) < y1[0] + 30):
+                feedspawned = False
+                score_border += 1
+                food.play()
+                feed = True
+                x1.append(x1[0])
+                y1.append(y1[0])
+
+            if not feedspawned:
+                n = True
+                while n:
+                    n = False
+                    x_feed = random.randint(0, 44)
+                    y_feed = random.randint(0, 19)
+                    for i in range(body):
+                        if (x1[i] < (x_feed1 + x_feed * 30) < x1[i] + 30) and (
+                                y1[i] < (y_feed1 + y_feed * 30) < y1[i] + 30):
+                            n = True
+                feedspawned = True
+
+            win.fill((123, 104, 238))  # заполнение окна цветом
+
+    pygame.quit()
+
+
+def borderless():
+    global score_borderless, record_borderless
+    score_borderless = 0
+    pygame.init()
+    snd_dir = path.join(path.dirname(__file__), 'snd')
+
+    food = pygame.mixer.Sound(path.join(snd_dir, 'food.wav'))
+    move = pygame.mixer.Sound(path.join(snd_dir, 'move.wav'))
+
+    game = True
+
+    while game:
+
+        pygame.init()
+        win = pygame.display.set_mode((1410, 700))  # создаю окно
+
+        pygame.display.set_caption("Snake")
+
+        borderr = False
+
+        x_cube = 27
+        y_cube = 67
+        width_cube = 1349
+        height_cube = 598
+
+        x_cube1 = 30
+        y_cube1 = 18
+        width_cube1 = 120
+        height_cube1 = 30
+
+        x_cube2 = 1260
+        y_cube2 = 18
+        width_cube2 = 120
+        height_cube2 = 30
+
+        width = 22
+        height = 22
+
+        Left = 0
+        Right = 0
+        UP = 0
+        DOWN = 0
+        x_feed1 = 40
+        y_feed1 = 80
+
+        body = 1
+
+        feedspawned = True
+        x1 = [30]
+        y1 = [70]
+
+        feed = False
+        font = pygame.font.Font(None, 25)
+
+        x_feed = random.randint(0, 44)
+        y_feed = random.randint(0, 19)
+        while (x1[0] >= (x_feed1 + x_feed * 30) >= x1[0] + 30) and (
+                y1[0] >= (y_feed1 + y_feed * 30) >= y1[0] + 30):
+            x_feed = random.randint(0, 44)
+            y_feed = random.randint(0, 19)
+
+        run = True
+        while run:
+            pygame.time.delay(100)  # Цикл будет выполняться каждые 0,1 секунды
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    menu()
+
+            if x1[0] < 30:
+                x1[0] = 1350
+
+            if x1[0] > 1350:
+                x1[0] = 30
+
+            if y1[0] < 70:
+                y1[0] = 640
+
+            if y1[0] > 640:
+                y1[0] = 70
+
+            win.fill((123, 104, 238))  # заполнение окна чёрным цветом
+
+            pygame.draw.rect(win, (0, 0, 0),
+                             (x_cube - 4, y_cube - 4, width_cube + 8, height_cube + 8))  # рисую чёрный квадрат
+            pygame.draw.rect(win, (129, 139, 222), (x_cube - 2, y_cube - 2, width_cube + 4, height_cube + 4))
+
+            pygame.draw.circle(win, (0, 0, 0), (x_feed1 + x_feed * 30, y_feed1 + y_feed * 30), 9)
+            pygame.draw.circle(win, (254, 4, 0), (x_feed1 + x_feed * 30, y_feed1 + y_feed * 30), 7)
+
+            pygame.draw.rect(win, (0, 0, 0), (x_cube1 - 4, y_cube1 - 4, width_cube1 + 8, height_cube1 + 8))
+            pygame.draw.rect(win, (129, 139, 222), (x_cube1 - 2, y_cube1 - 2, width_cube1 + 4, height_cube1 + 4))
+
+            pygame.draw.rect(win, (0, 0, 0), (x_cube2 - 4, y_cube2 - 4, width_cube2 + 8, height_cube2 + 8))
+            pygame.draw.rect(win, (129, 139, 222), (x_cube2 - 2, y_cube2 - 2, width_cube2 + 4, height_cube2 + 4))
+
+            for i in range(body):
+                pygame.draw.rect(win, (0, 0, 0), (x1[i] - 2, y1[i] - 2, width + 4, height + 4))
+                pygame.draw.rect(win, (0, 255, 0), (x1[i], y1[i], width, height))
+
+            for i in range(body):
+                pygame.draw.rect(win, (0, 0, 0), (x1[i] - 2, y1[i] - 2, width + 4, height + 4))
+                pygame.draw.rect(win, (0, 255, 0), (x1[i], y1[i], width, height))
+
+            text = font.render("Score: " + str(score_borderless), True, (0, 0, 0))
+            text1 = font.render("Record: " + str(record_borderless), True, (0, 0, 0))
+            win.blit(text, [40, 25])
+            win.blit(text1, [1270, 25])
+
+            pygame.display.update()
+            keys = pygame.key.get_pressed()
+            if (Left + Right + UP + DOWN) > 0:
+                move.play()
+
+            if Right != 1:
+                if keys[pygame.K_LEFT]:
+                    Left = 1
+                    Right = 0
+                    UP = 0
+                    DOWN = 0
+            if Left != 1:
+                if keys[pygame.K_RIGHT]:
+                    Right = 1
+                    Left = 0
+                    UP = 0
+                    DOWN = 0
+            if DOWN != 1:
+                if keys[pygame.K_UP]:
+                    UP = 1
+                    Left = 0
+                    Right = 0
+                    DOWN = 0
+            if UP != 1:
+                if keys[pygame.K_DOWN]:
+                    DOWN = 1
+                    Left = 0
+                    Right = 0
+                    UP = 0
+
+            if Left == 1 and x1[0] > 29:
+
+                i = 1
+                while (body - i - 1) >= 0:
+                    y1[body - i] = y1[body - i - 1]
+                    x1[body - i] = x1[body - i - 1]
+
+                    i += 1
+                x1[0] -= 30
+
+            if Right == 1 and x1[0] < 1351:
+
+                i = 1
+                while (body - i - 1) >= 0:
+                    y1[body - i] = y1[body - i - 1]
+                    x1[body - i] = x1[body - i - 1]
+                    i += 1
+                x1[0] += 30
+            if UP == 1 and y1[0] > 69:
+
+                i = 1
+                while (body - i - 1) >= 0:
+                    y1[body - i] = y1[body - i - 1]
+                    x1[body - i] = x1[body - i - 1]
+                    i += 1
+
+                y1[0] -= 30
+            if DOWN == 1 and y1[0] < 641:
+
+                i = 1
+                while (body - i - 1) >= 0:
+                    y1[body - i] = y1[body - i - 1]
+                    x1[body - i] = x1[body - i - 1]
+                    i += 1
+
+                y1[0] += 30
+            g = 1
+            while g < body:
+                if x1[0] == x1[g] and y1[0] == y1[g]:
+                    if score_borderless > record_borderless:
+                        record_borderless = score_borderless
+
+                    while run:
+                        lose(borderr)
+                g += 1
+
+            if feed:
+                body += 1
+                feed = False
+
+            if (x1[0] < (x_feed1 + x_feed * 30) < x1[0] + 30) and (
+                    y1[0] < (y_feed1 + y_feed * 30) < y1[0] + 30):
+                feedspawned = False
+                score_borderless += 1
+                food.play()
+                feed = True
+                x1.append(x1[0])
+                y1.append(y1[0])
+
+            if not feedspawned:
+                n = True
+                while n:
+                    n = False
+                    x_feed = random.randint(0, 44)
+                    y_feed = random.randint(0, 19)
+                    for i in range(body):
+                        if (x1[i] < (x_feed1 + x_feed * 30) < x1[i] + 30) and (
+                                y1[i] < (y_feed1 + y_feed * 30) < y1[i] + 30):
+                            n = True
+                feedspawned = True
+
+            win.fill((123, 104, 238))  
+
+    pygame.quit()
+
+
+menu()
