@@ -29,7 +29,7 @@ def info():
     lbl = Label(window, text="столкновение со стенками и своим телом.", bg="#7b68ee", font="16")
     lbl.place(x=20, y=120)
     lbl = Label(window, text="                                      "
-                             " - наиболее актуальная версия змейки, где игрок может проходить", bg="#7b68ee", font="16")
+                             " - наиболее актуальная версия змейки, где играющий не способен", bg="#7b68ee", font="16")
     lbl.place(x=20, y=180)
     lbl = Label(window, text="Безрамочный режим", bg="#7b68ee", fg="red3", font="18")
     lbl.place(x=20, y=180)
